@@ -1,0 +1,66 @@
+			README
+			======
+
+	    vsphere.py repository
+	    ------------------------------
+
+This script allows creation of vmware virtual machines and registration in cobbler for autoinstall
+
+Requisites
+------------
+
+-jython (>2.4.1 to provide optparse module)
+-vsphere java api (documented as follows)
+-vsphere.ini file in your home directory or in same directory as program (look at sample for syntax)
+
+VMware VI (vSphere) Java API Instalation
+------------
+
+  1. Download latest version en http://vijava.sourceforge.net/
+
+  2. Unzip archive
+    
+     por ejemplo unzip vijava520110926.zip
+
+  3. Move jar resultantes to lib/ext of your java install (ext/lib en fedora)
+     For instance, with default jre on ubuntu:
+    
+     JAVA_HOME=/usr/lib/jvm/java-6-openjdk/jre
+     sudo cp dom4j-1.6.1.jar $JAVA_HOME/ext/lib
+     sudo cp vijava520110926.jar $JAVA_HOME/ext/lib
+
+     Or for a 64 bits fedora16 :
+     JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-1.7.0.3.x86_64/jre
+     sudo cp dom4j-1.6.1.jar $JAVA_HOME/ext/lib/ext
+     sudo cp vijava520110926.jar $JAVA_HOME/lib/ext
+
+Contents
+--------
+
+
+    README.txt          		this file
+    vsphere.py				creates ( and deletes ) virtual machines in vcenter of several clients
+                                                            
+
+Typical uses
+---------
+     
+    CREATE VIRTUAL MACHINE V0100 BASED ON PROFILE BE64 FOR CLIENT BIGCOMPANY, PROVIDING IP FOR COBBLER
+    vsphere.py -ZC BIGCOMPANY -n V0100 -p BE6 -1 192.168.1.100 -2 192.168.10.100
+    
+    SAME THING,WITH 60G DE DISCO,4G DE RAM Y 2 VCPUS
+    vsphere.py -ZC BIGCOMPANY -n V0100 -p BE6 -1 192.168.1.100 -2 192.168.10.100 -c 2 -m 4096 -s 60	
+    
+    DELETE VIRTUAL MACHINE V0100 FROM CLIENT NYSE
+    vsphere.py -C NYSE -D V0100
+
+
+Problems?
+---------
+
+Send a mail to karimboumedhel@gmail.com or find it yourself !
+
+Ai seu te pego!
+
+karmab
+
