@@ -199,6 +199,7 @@ listinggroup = optparse.OptionGroup(parser, "Listing options")
 listinggroup.add_option("-l", "--listprofiles", dest="listprofiles", action="store_true", help="list available profiles")
 listinggroup.add_option("-L", "--listclients", dest="listclients", action="store_true", help="list available clients")
 listinggroup.add_option("-R", "--report", dest="report", action="store_true", help="Report Overall info on VirtualCenter")
+listinggroup.add_option("-V", "--listvms", dest="listvms", action="store_true", help="list all vms,along with theit status")
 
 parser.add_option("-9", "--switchclient", dest="switchclient", type="string", help="Switch default client")
 parser.add_option_group(listinggroup)
@@ -231,6 +232,7 @@ kill=options.kill
 forcekill=options.forcekill
 listprofiles=options.listprofiles
 listclients=options.listclients
+listvms = options.listvms
 switchclient = options.switchclient
 memory = options.memory
 memoryupdate = options.memory
@@ -301,6 +303,7 @@ if switchclient:
   f.close()
   print "Default Client set to %s" % (switchclient)
  sys.exit(0)
+
 
 if not client:
  try:
@@ -392,6 +395,17 @@ if kill:
   result=t.waitForMe()
   print "%s on deleting %s in VC"% (result,kill)
  sys.exit(0)
+
+#LIST VMS
+if listvms:
+ url="https://"+vcip+"/sdk"
+ si = ServiceInstance(URL(url), vcuser, vcpassword , True)
+ rootFolder=si.getRootFolder()
+ vms=InventoryNavigator(rootFolder).searchManagedEntities("VirtualMachine")
+ for vm in sorted(vms):print "%s %s" % (vm.getName(),vm.getRuntime().getPowerState().toString())
+ sys.exit(0)
+
+
 
 
 #SEARCH VMS
