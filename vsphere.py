@@ -1,10 +1,12 @@
 #!/usr/bin/env jython
 """
-jython script to create Vmware Virtual Machines and register them in cobbler for autoinstall
+jython script to create Vmware Virtual Machines with cobbler support
 """
 
-import sys,os,xmlrpclib
 import optparse
+import os
+import sys
+import xmlrpclib
 import ConfigParser
 from com.vmware.vim25 import *
 from com.vmware.vim25.mo import *
@@ -13,7 +15,7 @@ import java.net.URL as URL
 __author__ = "Karim Boumedhel"
 __credits__ = ["Karim Boumedhel"]
 __license__ = "GPL"
-__version__ = "1.0"
+__version__ = "1.1"
 __maintainer__ = "Karim Boumedhel"
 __email__ = "karimboumedhel@gmail.com"
 __status__ = "Production"
@@ -150,42 +152,56 @@ def migratevm(vm,name,pool,host):
 
 
 #-1-handle arguments
-usage="script to create Vmware Virtual Machines and register them in cobbler for autoinstall"
-version="1.0"
+usage="script to create Vmware Virtual Machines with cobbler support"
+version="1.1"
 parser = optparse.OptionParser(usage=usage,version=version)
-parser.add_option("-c", "--cpu", dest="numcpu", type="int", help="specify Number of CPUS")
-parser.add_option("-d", "--diskmode", dest="diskmode", type="string", help="specify Disk mode.Defaults to persistent")
-parser.add_option("-f", "--destnet", dest="destnet", type="string", help="specify Net to move net interface of VM to.By default,second interface and not first will be used, unless -6 option is set")
-parser.add_option("-l", "--listprofiles", dest="listprofiles", action="store_true", help="list available profiles")
-parser.add_option("-m", "--memory", dest="memory", type="int", help="specify Memory, in Mo")
-parser.add_option("-n", "--name", dest="name",type="string", help="specify VM name")
-parser.add_option("-p", "--profile", dest="profile",type="string", help="specify Profile")
-parser.add_option("-s", "--size", dest="disksize", type="int", help="specify Disk size,in Go")
-parser.add_option("-t", "--template", dest="template", action="store_true", help="Deploy from template")
-parser.add_option("-u", "--update", dest="update", action="store_true", help="Update VM(Cpu or Memory)")
-parser.add_option("-A", "--forceinstallnet", dest="forceinstallnet", action="store_true", help="Force cobbler server to have its interface migrated to this installnet prior to deploying VM")
-parser.add_option("-B", "--stop", dest="stop", action="store_true", help="Stop VM")
-parser.add_option("-C", "--client", dest="client", type="string", help="specify Client")
-parser.add_option("-D", "--datastore", dest="ds", type="string", help="specify Datastore")
-parser.add_option("-F", "--forcekill", dest="forcekill", action="store_true", help="Dont ask confirmation when killing a VM")
-parser.add_option("-H", "--host", dest="host", type="string", help="specify ESX host to launch VM on.If no host is specified,an algorithm will be used to find best ESX to run the new VM -Currently the ESX with less running VMS will be choosen")
-parser.add_option("-I", "--installnet", dest="installnet", help="Use specific network at install time only.Correct net for second net interface will have to be put before first boot then.You can also use -A switch to force cobbler server to have its interface migrated to this installnet prior to deploying VM")
-parser.add_option("-K", "--kill", dest="kill", type="string", help="specify VM to kill in virtual center.Confirmation will be asked unless -F/--forcekill flag is set.VM will also be killed in cobbler server if -Z/-cobbler flag set")
-parser.add_option("-L", "--listclients", dest="listclients", action="store_true", help="list available clients")
-parser.add_option("-M", "--migrate", dest="migrate", action="store_true", help="Migrate VM.host can be specified with -H or a list will be displayed")
-parser.add_option("-O", "--start", dest="start", action="store_true", help="Start VM")
-parser.add_option("-P", "--pushcobbler", dest="pushcobbler", action="store_true", help="Push cobbler server to same ESX prior to install")
-parser.add_option("-R", "--report", dest="report", action="store_true", help="Report Overall info on VirtualCenter")
-parser.add_option("-S", "--search", dest="search", type="string", help="Search VMS")
-parser.add_option("-T", "--thin", dest="thin", action="store_true", help="Use thin provisioning for disk")
-parser.add_option("-W", "--vlan", dest="changevlan", action="store_true", help="change VLAN of the cobbler server to match profile of the created machine.implies defining the associated MAC of the interface to change as cobblermac in cobbler.ini .By default,second interface of cobbler service will be used,unless -6 option is set")
-parser.add_option("-X", "--distributed", dest="distributed", action="store_true", help="Use portgroups members of a VirtualDistributedSwitch")
-parser.add_option("-Y", "--nolaunch", dest="nolaunch", action="store_true", help="Dont Launch VM,just create it")
-parser.add_option("-Z", "--cobbler", dest="cobbler", action="store_true", help="Cobbler support")
-parser.add_option("-1", "--ip1", dest="ip1", type="string", help="specify first IP")
-parser.add_option("-2", "--ip2", dest="ip2", type="string", help="specify second IP")
-parser.add_option("-3", "--ip3", dest="ip3", type="string", help="specify third IP")
-parser.add_option("-6", "--usefirst", dest="usefirst", action="store_true", help="use first interface instead of second when changing vlan")
+
+creationgroup = optparse.OptionGroup(parser, "Creation options")
+creationgroup.add_option("-c", "--cpu", dest="numcpu", type="int", help="specify Number of CPUS")
+creationgroup.add_option("-f", "--destnet", dest="destnet", type="string", help="specify Net to move net interface of VM to.By default,second interface and not first will be used, unless -6 option is set")
+creationgroup.add_option("-m", "--memory", dest="memory", type="int", help="specify Memory, in Mo")
+creationgroup.add_option("-n", "--name", dest="name",type="string", help="specify VM name")
+creationgroup.add_option("-p", "--profile", dest="profile",type="string", help="specify Profile")
+creationgroup.add_option("-d", "--size", dest="disksize", type="int", help="specify Disk size,in Go")
+creationgroup.add_option("-t", "--template", dest="template", action="store_true", help="Deploy from template")
+creationgroup.add_option("-C", "--client", dest="client", type="string", help="specify Client")
+creationgroup.add_option("-D", "--datastore", dest="ds", type="string", help="specify Datastore")
+creationgroup.add_option("-H", "--host", dest="host", type="string", help="specify ESX host to launch VM on.If no host is specified,an algorithm will be used to find best ESX to run the new VM -Currently the ESX with less running VMS will be choosen")
+creationgroup.add_option("-I", "--installnet", dest="installnet", help="Use specific network at install time only.Correct net for second net interface will have to be put before first boot then.You can also use -A switch to force cobbler server to have its interface migrated to this installnet prior to deploying VM")
+creationgroup.add_option("-O", "--diskmode", dest="diskmode", type="string", help="specify Disk mode.Defaults to persistent")
+creationgroup.add_option("-T", "--thin", dest="thin", action="store_true", help="Use thin provisioning for disk")
+creationgroup.add_option("-W", "--vlan", dest="changevlan", action="store_true", help="change VLAN of the cobbler server to match profile of the created machine.implies defining the associated MAC of the interface to change as cobblermac in cobbler.ini .By default,second interface of cobbler service will be used,unless -6 option is set")
+creationgroup.add_option("-X", "--distributed", dest="distributed", action="store_true", help="Use portgroups members of a VirtualDistributedSwitch")
+creationgroup.add_option("-Y", "--nolaunch", dest="nolaunch", action="store_true", help="Dont Launch VM,just create it")
+parser.add_option_group(creationgroup)
+
+actiongroup = optparse.OptionGroup(parser, "Action options")
+actiongroup.add_option("-s", "--start", dest="start", action="store_true", help="Start VM")
+actiongroup.add_option("-u", "--update", dest="update", action="store_true", help="Update VM(Cpu or Memory)")
+actiongroup.add_option("-w", "--stop", dest="stop", action="store_true", help="Stop VM")
+actiongroup.add_option("-F", "--forcekill", dest="forcekill", action="store_true", help="Dont ask confirmation when killing a VM")
+actiongroup.add_option("-K", "--kill", dest="kill", type="string", help="specify VM to kill in virtual center.Confirmation will be asked unless -F/--forcekill flag is set.VM will also be killed in cobbler server if -Z/-cobbler flag set")
+actiongroup.add_option("-M", "--migrate", dest="migrate", action="store_true", help="Migrate VM.host can be specified with -H or a list will be displayed")
+actiongroup.add_option("-S", "--search", dest="search", type="string", help="Search VMS")
+parser.add_option_group(actiongroup)
+
+cobblergroup = optparse.OptionGroup(parser, "Cobbler options")
+cobblergroup.add_option("-A", "--forceinstallnet", dest="forceinstallnet", action="store_true", help="Force cobbler server to have its interface migrated to this installnet prior to deploying VM")
+cobblergroup.add_option("-P", "--pushcobbler", dest="pushcobbler", action="store_true", help="Push cobbler server to same ESX prior to install")
+cobblergroup.add_option("-Z", "--cobbler", dest="cobbler", action="store_true", help="Cobbler support")
+cobblergroup.add_option("-1", "--ip1", dest="ip1", type="string", help="specify first IP")
+cobblergroup.add_option("-2", "--ip2", dest="ip2", type="string", help="specify second IP")
+cobblergroup.add_option("-3", "--ip3", dest="ip3", type="string", help="specify third IP")
+cobblergroup.add_option("-6", "--usefirst", dest="usefirst", action="store_true", help="use first interface instead of second when changing vlan")
+parser.add_option_group(cobblergroup)
+
+listinggroup = optparse.OptionGroup(parser, "Listing options")
+listinggroup.add_option("-l", "--listprofiles", dest="listprofiles", action="store_true", help="list available profiles")
+listinggroup.add_option("-L", "--listclients", dest="listclients", action="store_true", help="list available clients")
+listinggroup.add_option("-R", "--report", dest="report", action="store_true", help="Report Overall info on VirtualCenter")
+
+parser.add_option("-9", "--switchclient", dest="switchclient", type="string", help="Switch default client")
+parser.add_option_group(listinggroup)
 
 (options, args) = parser.parse_args()
 clients=[]
@@ -215,6 +231,7 @@ kill=options.kill
 forcekill=options.forcekill
 listprofiles=options.listprofiles
 listclients=options.listclients
+switchclient = options.switchclient
 memory = options.memory
 memoryupdate = options.memory
 migrate = options.migrate
@@ -240,11 +257,8 @@ guestid564="rhel5_64Guest"
 guestid632="rhel6guest"
 guestid664="rhel6_64Guest"
 
+vcconffile="%s/vsphere.ini" % (os.environ['HOME'])
 #parse vsphere auth file
-if os.path.exists("vsphere.ini"):
- vcconffile="vsphere.ini"
-else:
- vcconffile=os.environ['HOME']+"/vsphere.ini"
 if not os.path.exists(vcconffile):
  print "Missing %s in your  home directory or in current directory.Check documentation" % vcconffile
  sys.exit(1)
@@ -270,6 +284,22 @@ if listclients:
  print "Available Clients:"
  for cli in  sorted(vcs):
   print cli
+ print "Current default client is: %s" % (default["client"])
+ sys.exit(0)
+
+if switchclient:
+ if switchclient not in vcs.keys():
+  print "Client not defined...Leaving"
+ else:
+  mod = open(vcconffile).readlines()
+  f=open(vcconffile,"w")
+  for line in mod:
+   if line.startswith("client"):
+    f.write("client=%s\n" % switchclient)
+   else:
+    f.write(line)
+  f.close()
+  print "Default Client set to %s" % (switchclient)
  sys.exit(0)
 
 if not client:
