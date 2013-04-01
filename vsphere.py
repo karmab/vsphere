@@ -594,6 +594,7 @@ if len(args) == 1:
  #print "IP: %s " %vm.getGuest().getIpAddress()
  print "Cluster: %s"   % clustername
  print "Status: %s" % vm.getRuntime().getPowerState().toString()
+ print "Os:%s" %  vm.getGuest().getGuestFullName()
  print "Host: %s"   % currenthostname
  cpu,mem=vm.getSummary().getConfig().getNumCpu(),vm.getSummary().getConfig().getMemorySizeMB()
  print "Memory: %sMb" % mem
@@ -629,16 +630,15 @@ if len(args) == 1:
     disktype="Normal"
     thin=diskback.getThinProvisioned()
    cap=d.getCapacityInKB()
+   print dir(d)
    disks.append([cap,disktype,thin])
- print "Disks:"
  for disk in disks:
   size=disk[0]/1024/1024
   disktype=disk[1]
   thin=disk[2]
   print "disksize: %sGB type: %s thin: %s ds: %s" % (size,disktype,thin,datastore)
- print "Nets:"
  for nic in sorted(nets):
-  print "if: %s mac: %s net: %s type: %s " % (nic,nets[nic][0],nets[nic][1],nets[nic][2].split("@")[0])
+  print "net interfaces: %s mac: %s net: %s type: %s " % (nic,nets[nic][0],nets[nic][1],nets[nic][2].split("@")[0])
  sys.exit(0)
 
 
