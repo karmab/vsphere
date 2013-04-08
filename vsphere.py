@@ -286,7 +286,7 @@ if listclients:
  print "Available Clients:"
  for cli in  sorted(vcs):
   print cli
- print "Current default client is: %s" % (default["client"])
+ if default.has_key("client"):print "Current default client is: %s" % (default["client"])
  sys.exit(0)
 
 if switchclient:
