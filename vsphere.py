@@ -430,7 +430,10 @@ if report:
  si = ServiceInstance(URL(url), vcuser, vcpassword , True)
  rootFolder=si.getRootFolder()
  clus=InventoryNavigator(rootFolder).searchManagedEntities("ComputeResource")
+ datacenters=InventoryNavigator(rootFolder).searchManagedEntities("Datacenter")
  print "Client: %s\n" % client
+ for dc in datacenters:
+  print "Datacenter: %s " % dc.getName()
  for clu in clus:
   print "Cluster: %s " % clu.getName()
   print "Associated Hosts:"
@@ -439,9 +442,9 @@ if report:
   print "Associated Networks:"
   for net in clu.getNetworks():
    print "Net Name: %s" % net.getName()
-  #print "Associated Datastores:"
-  #for ds in clu.getDatastores():
-  # print "DS Name: %s" % ds.getName()
+  print "Associated Datastores:"
+  for ds in clu.getDatastores():
+   print "DS Name: %s" % ds.getName()
   print ""
  sys.exit(0)
 
