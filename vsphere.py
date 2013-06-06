@@ -633,7 +633,6 @@ if len(args) == 1:
     disktype="Normal"
     thin=diskback.getThinProvisioned()
    cap=d.getCapacityInKB()
-   print dir(d)
    disks.append([cap,disktype,thin])
  for disk in disks:
   size=disk[0]/1024/1024
