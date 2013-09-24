@@ -256,6 +256,7 @@ start=options.start
 template=options.template
 update=options.update
 sha1,fqdn = None,None
+vnc = False
 mac1="00:00:00:00:00:01"
 mac2="00:00:00:00:00:02"
 mac3="00:00:00:00:00:03"
@@ -344,6 +345,8 @@ try:
     sha1 = vcs[client]['sha1']
  if vcs[client].has_key('fqdn'):
     fqdn = vcs[client]['fqdn']
+ if vcs[client].has_key('vnc'):
+    vnc = True
 except KeyError,e:
  print "Problem parsing your ini file:Missing parameter %s" % e
  os._exit(1)
@@ -671,6 +674,7 @@ if len(args) == 1:
    vmurl = "vnc://%s:%s" % (currenthostname, vncport)
    print "URL for console s access:"
    print vmurl
+   os.popen("remote-viewer %s" % vmurl ) 
   else:
    si = ServiceInstance(URL(url), vcuser, vcpassword , True)
    sessionmanager = si.getSessionManager()
@@ -901,15 +905,18 @@ confspec.setAnnotation(name)
 confspec.setMemoryMB(memory)
 confspec.setNumCPUs(numcpu)
 confspec.setGuestId(guestid) 
-#enable VNC
-#vncport = random.randint(5900, 7000)
-#opt1 = OptionValue()
-#opt1.setKey('RemoteDisplay.vnc.port')
-#opt1.setValue(vncport);
-#opt2 = OptionValue()
-#opt2.setKey('RemoteDisplay.vnc.enabled')
-#opt2.setValue("TRUE");
-#confspec.setExtraConfig([opt1,opt2])
+
+if vnc:
+ #enable VNC
+ vncport = random.randint(5900, 7000)
+ opt1 = OptionValue()
+ opt1.setKey('RemoteDisplay.vnc.port')
+ opt1.setValue(vncport);
+ opt2 = OptionValue()
+ opt2.setKey('RemoteDisplay.vnc.enabled')
+ opt2.setValue("TRUE");
+ confspec.setExtraConfig([opt1,opt2])
+
 scsispec,diskspec,filename=creatediskspec(disksize,ds,diskmode,thin)
 
 
