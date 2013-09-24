@@ -5,6 +5,7 @@ jython script to create Vmware Virtual Machines with cobbler support
 
 import optparse
 import os
+import random
 import sys
 import xmlrpclib
 import ConfigParser
@@ -885,7 +886,15 @@ confspec.setAnnotation(name)
 confspec.setMemoryMB(memory)
 confspec.setNumCPUs(numcpu)
 confspec.setGuestId(guestid) 
-
+#enable VNC
+#vncport = random.randint(5900, 7000)
+#opt1 = OptionValue()
+#opt1.setKey('RemoteDisplay.vnc.port')
+#opt1.setValue(vncport);
+#opt2 = OptionValue()
+#opt2.setKey('RemoteDisplay.vnc.enabled')
+#opt2.setValue("TRUE");
+#confspec.setExtraConfig([opt1,opt2])
 scsispec,diskspec,filename=creatediskspec(disksize,ds,diskmode,thin)
 
 
