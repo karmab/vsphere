@@ -12,6 +12,7 @@ from com.vmware.vim25 import *
 from com.vmware.vim25.mo import *
 import java.net.URL as URL
 
+
 __author__ = "Karim Boumedhel"
 __credits__ = ["Karim Boumedhel"]
 __license__ = "GPL"
@@ -176,6 +177,7 @@ creationgroup.add_option("-Y", "--nolaunch", dest="nolaunch", action="store_true
 parser.add_option_group(creationgroup)
 
 actiongroup = optparse.OptionGroup(parser, "Action options")
+actiongroup.add_option("-o", "--console", dest="console", action="store_true", help="Get a console")
 actiongroup.add_option("-s", "--start", dest="start", action="store_true", help="Start VM")
 actiongroup.add_option("-u", "--update", dest="update", action="store_true", help="Update VM(Cpu or Memory)")
 actiongroup.add_option("-w", "--stop", dest="stop", action="store_true", help="Stop VM")
@@ -229,6 +231,7 @@ ip1=options.ip1
 ip2=options.ip2
 ip3=options.ip3
 kill=options.kill
+console = options.console
 forcekill=options.forcekill
 listprofiles=options.listprofiles
 listclients=options.listclients
@@ -251,6 +254,7 @@ stop=options.stop
 start=options.start
 template=options.template
 update=options.update
+sha1,fqdn = None,None
 mac1="00:00:00:00:00:01"
 mac2="00:00:00:00:00:02"
 mac3="00:00:00:00:00:03"
@@ -335,6 +339,10 @@ try:
  vcuser=vcs[client]['user']
  vcpassword=vcs[client]['password']
  dc=vcs[client]['datacenter']
+ if vcs[client].has_key('sha1'):
+    sha1 = vcs[client]['sha1']
+ if vcs[client].has_key('fqdn'):
+    fqdn = vcs[client]['fqdn']
 except KeyError,e:
  print "Problem parsing your ini file:Missing parameter %s" % e
  os._exit(1)
@@ -641,8 +649,31 @@ if len(args) == 1:
   print "disksize: %sGB type: %s thin: %s ds: %s" % (size,disktype,thin,datastore)
  for nic in sorted(nets):
   print "net interfaces: %s mac: %s net: %s type: %s " % (nic,nets[nic][0],nets[nic][1],nets[nic][2].split("@")[0])
+ if console:
+  if vm.getRuntime().getPowerState().toString()=="poweredOff":
+   print "Machine down"
+   sys.exit(1)
+  while vm.getRuntime().getPowerState().toString()!="poweredOn":
+   print "Waiting for machine to be up..."
+   time.sleep(5)
+ si = ServiceInstance(URL(url), vcuser, vcpassword , True)
+ sessionmanager = si.getSessionManager()
+ servicecontent = si.getServiceContent()
+ setting = servicecontent.getSetting()
+ if not fqdn:
+     print "Please add fqdn= to your vsphere.ini. You can use vspherecert.py to retrieve this information"
+     sys.exit(0)
+ if not sha1:
+     print "Please add sha1= to your vsphere.ini. You can use vspherecert.py to retrieve this information"
+     sys.exit(0)
+ vcconsoleport = "7331"
+ session = sessionmanager.acquireCloneTicket()
+ vmid = vm.getMOR().get_value()
+ vmurl = "http://%s:%s/console/?vmId=%s&vmName=%s&host=%s&sessionTicket=%s&thumbprint=%s" % (vcip, vcconsoleport, vmid, name, fqdn, session, sha1)
+ print "URL for console s access:"
+ print vmurl
+ si.getServerConnection().logout()
  sys.exit(0)
-
 
 #parse profile for specific client
 if clientdir:
