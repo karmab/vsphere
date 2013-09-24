@@ -657,23 +657,38 @@ if len(args) == 1:
   while vm.getRuntime().getPowerState().toString()!="poweredOn":
    print "Waiting for machine to be up..."
    time.sleep(5)
- si = ServiceInstance(URL(url), vcuser, vcpassword , True)
- sessionmanager = si.getSessionManager()
- servicecontent = si.getServiceContent()
- setting = servicecontent.getSetting()
- if not fqdn:
-     print "Please add fqdn= to your vsphere.ini. You can use vspherecert.py to retrieve this information"
-     sys.exit(0)
- if not sha1:
-     print "Please add sha1= to your vsphere.ini. You can use vspherecert.py to retrieve this information"
-     sys.exit(0)
- vcconsoleport = "7331"
- session = sessionmanager.acquireCloneTicket()
- vmid = vm.getMOR().get_value()
- vmurl = "http://%s:%s/console/?vmId=%s&vmName=%s&host=%s&sessionTicket=%s&thumbprint=%s" % (vcip, vcconsoleport, vmid, name, fqdn, session, sha1)
- print "URL for console s access:"
- print vmurl
- si.getServerConnection().logout()
+  extraconfig = vm.getConfig().getExtraConfig()
+  vncfound = False
+  for extra in extraconfig:
+    key, value = extra.getKey(), extra.getValue()
+    if 'vnc' in key:
+        vncfound = True
+        vncport = value
+        break
+    else:
+        continue
+  if vncfound:
+   vmurl = "vnc://%s:%s" % (currenthostname, vncport)
+   print "URL for console s access:"
+   print vmurl
+  else:
+   si = ServiceInstance(URL(url), vcuser, vcpassword , True)
+   sessionmanager = si.getSessionManager()
+   servicecontent = si.getServiceContent()
+   setting = servicecontent.getSetting()
+   if not fqdn:
+    print "Please add fqdn= to your vsphere.ini. You can use vspherecert.py to retrieve this information"
+    sys.exit(0)
+   if not sha1:
+    print "Please add sha1= to your vsphere.ini. You can use vspherecert.py to retrieve this information"
+    sys.exit(0)
+   vcconsoleport = "7331"
+   session = sessionmanager.acquireCloneTicket()
+   vmid = vm.getMOR().get_value()
+   vmurl = "http://%s:%s/console/?vmId=%s&vmName=%s&host=%s&sessionTicket=%s&thumbprint=%s" % (vcip, vcconsoleport, vmid, name, fqdn, session, sha1)
+   print "URL for console s access:"
+   print vmurl
+   si.getServerConnection().logout()
  sys.exit(0)
 
 #parse profile for specific client
