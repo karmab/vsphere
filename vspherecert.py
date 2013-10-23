@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-python script to retrieve basic ssl information from vcenters 
+python script to retrieve basic ssl information from vcenters
 """
 #based on http://www.gefira.pl/blog/2011/07/06/fun-with-pythons-ssl-and-m2crypto-modules/
 
@@ -40,67 +40,67 @@ report = options.report
 vcconffile = "%s/vsphere.ini" % (os.environ['HOME'])
 #parse vsphere auth file
 if not os.path.exists(vcconffile):
- print "Missing %s in your  home directory or in current directory.Check documentation" % vcconffile
- sys.exit(1)
+    print "Missing %s in your  home directory or in current directory.Check documentation" % vcconffile
+    sys.exit(1)
 try:
- c = ConfigParser.ConfigParser()
- c.read(vcconffile)
- vcs = {}
- default = {}
- for cli in c.sections():
-  for option in  c.options(cli):
-   if cli=="default":
-    default[option] = c.get(cli,option)
-    continue
-   if not vcs.has_key(cli):
-    vcs[cli] = {option : c.get(cli,option)}
-   else:
-    vcs[cli][option] = c.get(cli,option)
+    c = ConfigParser.ConfigParser()
+    c.read(vcconffile)
+    vcs = {}
+    default = {}
+    for cli in c.sections():
+        for option in  c.options(cli):
+            if cli=="default":
+                default[option] = c.get(cli,option)
+                continue
+            if not vcs.has_key(cli):
+                vcs[cli] = {option : c.get(cli,option)}
+            else:
+                vcs[cli][option] = c.get(cli,option)
 except KeyError:
- print ERR_NOVSPHEREFILE
- os._exit(1)
+    print ERR_NOVSPHEREFILE
+    os._exit(1)
 
 if listclients:
- print "Available Clients:"
- for cli in  sorted(vcs):
-  print cli
- if default.has_key("client"):
-    print "Current default client is: %s" % (default["client"])
- sys.exit(0)
+    print "Available Clients:"
+    for cli in  sorted(vcs):
+        print cli
+    if default.has_key("client"):
+        print "Current default client is: %s" % (default["client"])
+    sys.exit(0)
 
 
 if switchclient:
- if switchclient not in vcs.keys():
-  print "Client not defined...Leaving"
- else:
-  mod = open(vcconffile).readlines()
-  f=open(vcconffile,"w")
-  for line in mod:
-   if line.startswith("client"):
-    f.write("client=%s\n" % switchclient)
-   else:
-    f.write(line)
-  f.close()
-  print "Default Client set to %s" % (switchclient)
- sys.exit(0)
+    if switchclient not in vcs.keys():
+        print "Client not defined...Leaving"
+    else:
+        mod = open(vcconffile).readlines()
+        f=open(vcconffile,"w")
+        for line in mod:
+            if line.startswith("client"):
+                f.write("client=%s\n" % switchclient)
+            else:
+                f.write(line)
+        f.close()
+        print "Default Client set to %s" % (switchclient)
+    sys.exit(0)
 
 
 if not client:
- try:
-  client = default['client']
- except:
-  print "No client defined as default in your ini file or specified in command line"
-  os._exit(1)
+    try:
+        client = default['client']
+    except:
+        print "No client defined as default in your ini file or specified in command line"
+        os._exit(1)
 
 if client not in sorted(vcs):
- print "Client not defined.Use -L to list available clients"
- sys.exit(0)
+    print "Client not defined.Use -L to list available clients"
+    sys.exit(0)
 
 try:
- vcip = vcs[client]['host']
+    vcip = vcs[client]['host']
 except KeyError,e:
- print "Problem parsing your ini file:Missing parameter %s" % e
- os._exit(1)
+    print "Problem parsing your ini file:Missing parameter %s" % e
+    os._exit(1)
 
 if report:
     pem = ssl.get_server_certificate((vcip, 443))
