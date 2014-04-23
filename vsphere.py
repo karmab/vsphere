@@ -457,7 +457,6 @@ if report:
         print "Associated Datastores:"
         for ds in clu.getDatastores():
             print "DS Name: %s" % ds.getName()
-            print dir(ds.getBrowser())
         print ""
     sys.exit(0)
 
@@ -745,6 +744,7 @@ profiles.has_key(profile) or sys.exit(0)
 
 
 #grab all conf from profile
+gateway= None
 clu=profiles[profile]['clu']
 net1=profiles[profile]['net1']
 net2=profiles[profile]['net2']
@@ -756,6 +756,7 @@ if profiles[profile].has_key("gwbackup"):gwbackup=profiles[profile]['gwbackup']
 if profiles[profile].has_key("gwstatic"):gwstatic=profiles[profile]['gwstatic']
 if profiles[profile].has_key("numinterfaces"):numinterfaces=int(profiles[profile]['numinterfaces'])
 if profiles[profile].has_key("staticroutes"):staticroutes=profiles[profile]['staticroutes']
+if profiles[profile].has_key("gateway"):staticroutes=profiles[profile]['gateway']
 
 #grab nets
 if numinterfaces == 1:
@@ -839,6 +840,8 @@ if cobbler:
         s.modify_system(system,'modify_interface',eth0,token)
         s.modify_system(system,'modify_interface',eth1,token)
         s.modify_system(system,'modify_interface',eth2,token)
+    if gateway:
+        s.modify_system(system, 'gateway', gateway ,token)
     s.save_system(system,token)
 
 nicname1 = "Network Adapter 1"
