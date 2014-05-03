@@ -264,6 +264,7 @@ guestid532="rhel5guest"
 guestid564="rhel5_64Guest"
 guestid632="rhel6guest"
 guestid664="rhel6_64Guest"
+clientdir= None
 
 vcconffile="%s/vsphere.ini" % (os.environ['HOME'])
 #parse vsphere auth file
