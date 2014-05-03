@@ -747,10 +747,6 @@ profiles.has_key(profile) or sys.exit(0)
 #grab all conf from profile
 gateway= None
 clu=profiles[profile]['clu']
-net1=profiles[profile]['net1']
-net2=profiles[profile]['net2']
-subnet1=profiles[profile]['subnet1']
-subnet2=profiles[profile]['subnet2']
 guestid=profiles[profile]['guestid']
 if profiles[profile].has_key("nextserver"):nextserver=profiles[profile]['nextserver']
 if profiles[profile].has_key("gwbackup"):gwbackup=profiles[profile]['gwbackup']
@@ -761,14 +757,14 @@ if profiles[profile].has_key("gateway"):staticroutes=profiles[profile]['gateway'
 
 #grab nets
 if numinterfaces == 1:
-    net1=profiles[profile]['net1']
+    net1 = profiles[profile]['net1']
     if installnet:
         nets=[installnet]
     else:
         nets=[net1]
 elif numinterfaces == 2:
-    net1=profiles[profile]['net1']
-    net2=profiles[profile]['net2']
+    net1 = profiles[profile]['net1']
+    net2 = profiles[profile]['net2']
     if installnet:
         nets=[net1,installnet]
     else:
@@ -786,11 +782,13 @@ elif numinterfaces == 3:
 #grab ips and extra routes for cobbler
 if cobbler:
     if numinterfaces == 1:
+        subnet1 = profiles[profile]['subnet1']
         if not subnet1:
             print "Missing subnet in client ini file.Check documentation"
             sys.exit(1)
         if not ip1:ip1=raw_input("Enter first ip:\n")
     elif numinterfaces == 2:
+        subnet2 = profiles[profile]['subnet2']
         if not subnet1 or not subnet2:
             print "Missing subnet in client ini file.Check documentation"
             sys.exit(1)
@@ -798,6 +796,7 @@ if cobbler:
         if not ip2:ip2=raw_input("Enter second ip:\n")
     #cluster machines
     elif numinterfaces == 3:
+        subnet3 = profiles[profile]['subnet3']
         if not subnet1 or not subnet2 or not subnet3:
             print "Missing subnet in client ini file.Check documentation"
             sys.exit(1)
